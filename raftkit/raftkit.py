@@ -79,7 +79,7 @@ class RaftProtocol(object):
 
     @property
     def is_winner(self):
-        half = (len(self.peers) + 1) / 2
+        half = (len(self._peers) + 1) / 2
         return self._voters > half
 
     @property
