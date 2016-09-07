@@ -18,6 +18,8 @@ CHECK_INTERVAL = HEARTBEAT_INTERVAL * 1.3
 ELECTION_TIMEOUT_LOW = HEARTBEAT_INTERVAL * 2.3
 ELECTION_TIMEOUT_HIGH = HEARTBEAT_INTERVAL * 2.9
 
+LOGGING_INTERVAL = 5
+
 
 class RaftMessage(object):
     def __init__(self, message=None):
@@ -259,6 +261,11 @@ class RaftProtocol(object):
                     del self._peers[peer_id]
                     logger.info('peers', id=self._id, peers=self._peers)
 
+    async def log_statue(self):
+        while True:
+            logger.info('status', id=self._id, term=self._term, role=self._role, peers=self._peers)
+            await asyncio.sleep(LOGGING_INTERVAL)
+
     def run_forever(self):
         logger.info('started', id=self._id)
         logger.info('peers', id=self._id, peers=self._peers)
@@ -266,7 +273,8 @@ class RaftProtocol(object):
             tasks = asyncio.gather(
                 asyncio.ensure_future(self.service_coroutine(), loop=self._loop),
                 asyncio.ensure_future(self.heartbeat(), loop=self._loop),
-                asyncio.ensure_future(self.check_health(), loop=self._loop)
+                asyncio.ensure_future(self.check_health(), loop=self._loop),
+                asyncio.ensure_future(self.log_statue(), loop=self._loop)
             )
             self._loop.run_until_complete(tasks)
         except KeyboardInterrupt:
