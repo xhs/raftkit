@@ -53,10 +53,3 @@ class RaftUDPAgent(RaftProtocol):
     def decode_message(self, payload):
         message = json.loads(payload.decode('utf-8'))
         return RaftMessage(message)
-
-if __name__ == '__main__':
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-
-    raft = RaftUDPAgent('192.168.31.112:6789')
-    raft.run_forever()
