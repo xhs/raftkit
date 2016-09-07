@@ -4,7 +4,7 @@
 """test_udp_agent.py
 
 Usage:
-  test_udp_agent.py <advertise_address> [--peer-addresses=<a0:p0,a1:p1,...>]
+  test_udp_agent.py <advertise_address> [--peer-addresses=<s0:p0,s1:p1,...>]
   test_udp_agent.py (-h | --help)
   test_udp_agent.py (-v | --version)
 

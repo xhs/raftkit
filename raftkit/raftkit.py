@@ -85,12 +85,31 @@ class RaftProtocol(object):
         return self._voters > half
 
     @property
+    def is_leader(self):
+        return self._role == 'leader'
+
+    @property
     def timeout_seconds(self):
         if self._role == 'leader':
             seconds = HEARTBEAT_INTERVAL
         else:
             seconds = random.uniform(ELECTION_TIMEOUT_LOW, ELECTION_TIMEOUT_HIGH)
         return seconds
+
+    @property
+    def peer_addresses(self):
+        return [v['address'] for v in self._peers.values()]
+
+    @property
+    def leader_address(self):
+        if self.is_leader:
+            return self._advertise_address
+        else:
+            leader = self._peers.get(self._leader)
+            if leader is not None:
+                return leader['address']
+            else:
+                return None
 
     def service_coroutine(self):
         raise NotImplementedError
@@ -114,7 +133,7 @@ class RaftProtocol(object):
 
     def do_broadcast(self, message):
         payload = self.encode_message(self.decorate_message(message))
-        addresses = [v['address'] for k, v in self._peers.items()]
+        addresses = self.peer_addresses
         try:
             self.broadcast(payload, addresses)
         except Exception as e:
@@ -263,8 +282,18 @@ class RaftProtocol(object):
 
     async def log_statue(self):
         while True:
-            logger.info('status', id=self._id, term=self._term, role=self._role, peers=self._peers)
+            logger.info('status', id=self._id, term=self._term, role=self._role, peers=self._peers,
+                        leader_address=self.leader_address)
             await asyncio.sleep(LOGGING_INTERVAL)
+
+    def tasks(self):
+        tasks = [
+            asyncio.ensure_future(self.service_coroutine(), loop=self._loop),
+            asyncio.ensure_future(self.heartbeat(), loop=self._loop),
+            asyncio.ensure_future(self.check_health(), loop=self._loop),
+            asyncio.ensure_future(self.log_statue(), loop=self._loop)
+        ]
+        return tasks
 
     def run_forever(self):
         logger.info('started', id=self._id)
