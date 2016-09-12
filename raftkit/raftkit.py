@@ -280,7 +280,7 @@ class RaftProtocol(object):
                     del self._peers[peer_id]
                     logger.info('peers', id=self._id, peers=self._peers)
 
-    async def log_statue(self):
+    async def log_status(self):
         while True:
             logger.info('status', id=self._id, term=self._term, role=self._role, peers=self._peers,
                         leader_address=self.leader_address)
@@ -291,7 +291,7 @@ class RaftProtocol(object):
             asyncio.ensure_future(self.service_coroutine(), loop=self._loop),
             asyncio.ensure_future(self.heartbeat(), loop=self._loop),
             asyncio.ensure_future(self.check_health(), loop=self._loop),
-            asyncio.ensure_future(self.log_statue(), loop=self._loop)
+            asyncio.ensure_future(self.log_status(), loop=self._loop)
         ]
         return tasks
 
@@ -303,7 +303,7 @@ class RaftProtocol(object):
                 asyncio.ensure_future(self.service_coroutine(), loop=self._loop),
                 asyncio.ensure_future(self.heartbeat(), loop=self._loop),
                 asyncio.ensure_future(self.check_health(), loop=self._loop),
-                asyncio.ensure_future(self.log_statue(), loop=self._loop)
+                asyncio.ensure_future(self.log_status(), loop=self._loop)
             )
             self._loop.run_until_complete(tasks)
         except KeyboardInterrupt:
